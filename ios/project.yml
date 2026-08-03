@@ -1,0 +1,43 @@
+name: CasioAI
+options:
+  bundleIdPrefix: com.adamodeven
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  CasioAI:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: CasioAI
+    info:
+      path: CasioAI/Info.plist
+      properties:
+        CFBundleDisplayName: CasioAI
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSBluetoothAlwaysUsageDescription: "CasioAI connects to your watch module over Bluetooth to relay calls, music control, time/weather sync, and voice capture."
+        NSMicrophoneUsageDescription: "CasioAI uses the microphone for live voice conversations and thought capture."
+        NSSpeechRecognitionUsageDescription: "CasioAI transcribes thought-capture recordings entirely on-device using Speech Recognition."
+        NSLocationWhenInUseUsageDescription: "CasioAI uses your location to fetch the local daily high/low temperature to push to your watch."
+        UIBackgroundModes:
+          - bluetooth-central
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adamodeven.casioai
+        PRODUCT_NAME: CasioAI
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: true
