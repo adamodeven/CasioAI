@@ -34,24 +34,42 @@ assembles, and tests; rev2 fixes happen in a follow-up pass.
 
 - BLE central role: connect to watch, relay call answer/reject, relay music
   control (AVRCP), push time/date sync, push daily hi/lo temp.
-- Audio pipeline: receive audio from watch (voice Q&A and thought-capture modes),
-  send to Claude API.
-  - Voice Q&A: send to Claude, return a spoken/text response to the user.
-  - Thought capture: transcript + short AI-generated title, then create a Notion
-    page (title = generated title, body = full transcript) in a specified
-    inbox/todo database via the Notion API.
+- Audio pipeline: receive audio from watch (voice Q&A and thought-capture modes).
+  - **Voice Q&A (live conversation)**: stream to the **OpenAI Realtime API**
+    (not Claude) — this is a deliberate deviation from the original handoff doc,
+    chosen because the Realtime API is purpose-built for low-latency spoken
+    conversation.
+  - **Thought capture**: transcribed and titled **entirely on-device**, no cloud
+    call for this path.
+    - Transcription: Apple's on-device `Speech` framework
+      (`SFSpeechRecognizer` with `requiresOnDeviceRecognition = true`).
+    - Title generation: Apple's on-device Foundation Models framework (Apple
+      Intelligence on-device LLM). Confirmed target hardware is iPhone 15 Pro+
+      with Apple Intelligence enabled, so no heuristic fallback is needed for
+      rev1.
+    - Resulting transcript + title are written to Notion (see below).
+- Notion integration: create a page (title = generated title, body = full
+  transcript) in a database the user configures in the app's **Settings**
+  screen (name/ID, not hardcoded) — supports switching inbox databases without
+  a rebuild.
 - Weather fetch: pull daily high/low from a weather API, push to watch over BLE.
-- Real installable iOS app (not a script) — needs an Apple developer target
-  (device profile vs. TestFlight vs. App Store) decided before build.
+- Real installable iOS app (not a script), installed via a **local Xcode build
+  to the user's device** (free Apple ID, personal team — no paid Developer
+  Program account for rev1). Note: free-account builds need re-signing roughly
+  every 7 days; acceptable for rev1 per user.
 
-**Open decisions before starting this phase** (raised separately):
-- Which Notion database is the thought-capture inbox (ID/name), and expected
-  page schema.
-- How the app authenticates to the Claude API (user-supplied key stored on
-  device vs. a small backend proxy) and to Notion.
+**Resolved decisions:**
+- Claude API is no longer in the phone app's audio pipeline for rev1 — replaced
+  by OpenAI Realtime (conversation) and on-device Apple frameworks (thought
+  capture). Where the original doc referenced "Claude API" for these two
+  features, this supersedes it.
+- Notion database target: user-configurable in Settings, not fixed at build time.
+- iOS distribution: local Xcode install to the user's own device.
+
+**Still open before/during this phase** (source or ask as needed):
+- OpenAI Realtime API key handling (on-device vs. proxy) — needs the same
+  question the Claude key would have needed; will confirm before wiring auth.
 - Weather API provider (needs an API key/account).
-- iOS distribution target for a personal/hand-built app (Xcode local install to
-  a single device vs. TestFlight).
 
 ## Phase 2 — Watch firmware (BLE peripheral)
 
