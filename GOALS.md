@@ -66,9 +66,10 @@ assembles, and tests; rev2 fixes happen in a follow-up pass.
 - Notion database target: user-configurable in Settings, not fixed at build time.
 - iOS distribution: local Xcode install to the user's own device.
 
+- OpenAI Realtime API key: stored on-device (Keychain), same approach as the
+  Notion API token — no backend proxy for rev1.
+
 **Still open before/during this phase** (source or ask as needed):
-- OpenAI Realtime API key handling (on-device vs. proxy) — needs the same
-  question the Claude key would have needed; will confirm before wiring auth.
 - Weather API provider (needs an API key/account).
 
 ## Phase 2 — Watch firmware (BLE peripheral)
