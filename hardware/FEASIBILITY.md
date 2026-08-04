@@ -98,6 +98,36 @@ question below.
 | Passive NFC IC | NXP NTAG213 (SOT658-1 / MOA-1 package) | bare IC is small (sub-2mm class); the antenna coil area and steel-case detuning are the actual risk, not chip size — unchanged from the existing GOALS.md risk flag |
 | Coin cell | Renata CR2016 | 20mm × 1.6mm, proven in this case twice over (see above) |
 
+## Decision: nRF52832
+
+Chosen over the 52820 for the PDM+EasyDMA audio path — voice Q&A and thought
+capture are two of the three core features, and the low-power capture path
+outweighs the fit risk of a package 1mm larger per side than the
+proven-in-this-case 52820.
+
+## Addendum: LCD segment driving needs a dedicated driver IC
+
+Discovered starting firmware: the original Sensor Watch could reuse the
+stock LCD glass cheaply because its SAM L22 MCU has a **built-in segment LCD
+controller**. The nRF52832 has no such peripheral — bit-banging a
+multiplexed segment display from GPIO would mean waking the CPU on every
+refresh cycle (tens of Hz, continuously, for as long as the watch shows a
+time — which is always), directly working against the battery-life target.
+
+Standard fix: an external LCD segment driver IC, talked to over SPI/I2C
+only when the display content changes, handling multiplex refresh
+internally in hardware. Candidate: **NXP PCF8551** (4 backplane × 36
+segment, SPI or I²C, ~1.2µA typical). This is a new BOM line the earlier
+pass didn't budget for, and it's a physically large one — **TSSOP48**, which
+is a meaningfully bigger footprint than anything else on this board.
+Whether it fits next to the MCU/battery/mic on a ~25-30mm circular board is
+unverified and flagged below. A smaller segment-count driver (this display
+almost certainly doesn't need PCF8551's full 144-segment capacity) may
+exist and would ease the area problem — worth a closer look once the
+PCB phase has real board outline to check against, but PCF8551 is the
+firmware-blocking placeholder for now so SPI driver code has a real part to
+target.
+
 ## Calipers-verification punch list (update to GOALS.md's list)
 
 1. **Cavity depth** — no published source has this; everything above is
@@ -110,17 +140,12 @@ question below.
 3. **Vibration motor clearance** — confirm a 2.1-2.5mm-thick coin motor
    actually has room once the LCD, PCB, and battery are stacked; this is
    the component most likely to force a size compromise.
-4. **MCU package fit** — once you pick 52820 vs 52832 below, confirm the
-   larger 52832 (6×6mm) actually clears the available board area next to
-   the LCD connector/crystal keep-out zones.
-
-## Decision: nRF52832
-
-Chosen over the 52820 for the PDM+EasyDMA audio path — voice Q&A and thought
-capture are two of the three core features, and the low-power capture path
-outweighs the fit risk of a package 1mm larger per side than the
-proven-in-this-case 52820. This is now a firmware-blocking assumption:
-**cavity depth and available board area next to the LCD
-connector/crystal keep-out must be verified against a real 6×6mm QFN48
-footprint before layout**, not just against the smaller 52820's — added to
-the calipers punch list above as item 4.
+4. **MCU package fit** — nRF52832 (6×6mm QFN48, decided above) needs to
+   clear the available board area next to the LCD connector/crystal
+   keep-out zones.
+5. **LCD segment/backplane count** — map the stock display's actual
+   segment and common-line count off its flex connector (continuity test
+   with a multimeter against the visible segments) so the driver IC and
+   firmware segment map are built from reality, not assumption.
+6. **LCD driver IC footprint** — confirm a TSSOP48-size part (PCF8551)
+   actually fits the board alongside the MCU, mic, and battery contacts.

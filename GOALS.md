@@ -109,7 +109,10 @@ Pulled forward from Phase 3 (see working agreement above). Findings in
   treated as a firmware design requirement, not an afterthought.
 - Button/gesture handling (including press-and-hold for thought capture).
 - Audio capture and buffering (MEMS mic) for streaming/buffering to phone.
-- LCD segment driving: time/date, temp (hi/lo from phone), alarm state.
+- LCD segment driving: time/date, temp (hi/lo from phone), alarm state. Needs
+  a dedicated external LCD driver IC (nRF52832 has no built-in segment LCD
+  controller, unlike the SAM L22 Sensor Watch uses) — new BOM line found
+  during firmware work, see FEASIBILITY.md addendum.
 - Buzzer (reuse stock piezo) + vibration motor control, alarm modes.
 - Low-power state management throughout.
 
