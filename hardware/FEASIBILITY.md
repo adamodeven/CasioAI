@@ -114,7 +114,13 @@ question below.
    larger 52832 (6×6mm) actually clears the available board area next to
    the LCD connector/crystal keep-out zones.
 
-## Open decision
+## Decision: nRF52832
 
-MCU choice (52820 vs 52832) is asked separately since it changes firmware's
-audio-capture architecture, not just the BOM.
+Chosen over the 52820 for the PDM+EasyDMA audio path — voice Q&A and thought
+capture are two of the three core features, and the low-power capture path
+outweighs the fit risk of a package 1mm larger per side than the
+proven-in-this-case 52820. This is now a firmware-blocking assumption:
+**cavity depth and available board area next to the LCD
+connector/crystal keep-out must be verified against a real 6×6mm QFN48
+footprint before layout**, not just against the smaller 52820's — added to
+the calipers punch list above as item 4.

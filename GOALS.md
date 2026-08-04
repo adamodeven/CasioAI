@@ -90,11 +90,10 @@ Pulled forward from Phase 3 (see working agreement above). Findings in
   back + O-ring) via gold-plated PCB pads, rather than adding a discrete SMD
   coin cell holder — a holder alone is ~3.1mm tall, too much of an 8.2mm
   case budget.
-- **MCU: open decision** between nRF52820 (proven to fit this case via
-  Sensor Watch Pro, but no PDM/I2S mic peripheral) and nRF52832 (better
-  audio path via PDM+EasyDMA, but a larger, unproven-in-this-case package) —
-  see punch list below, asked separately since it changes firmware's audio
-  architecture.
+- **MCU: nRF52832** — resolved. Chosen over the proven-fit nRF52820 for its
+  PDM+EasyDMA mic path (low-power capture, two of three core features are
+  audio), accepting the risk of an unproven, 1mm-larger-per-side package.
+  Cavity fit for the 6×6mm QFN48 is now a firmware-blocking calipers item.
 - Mic, vibration motor, and NFC IC candidates sourced with real
   datasheet-level specs — see FEASIBILITY.md for parts and the tightest
   clearance risk (vibration motor thickness).
@@ -103,7 +102,7 @@ Pulled forward from Phase 3 (see working agreement above). Findings in
 
 ## Phase 2 — Watch firmware (BLE peripheral)
 
-- MCU: locked in from the Phase 1.5 decision above.
+- MCU: **nRF52832**, locked in from the Phase 1.5 decision above.
 - BLE peripheral role, aggressive duty-cycling: loose connection interval when
   idle, tightened only during active use (voice capture, incoming call, active
   music control). Primary lever for the 3–6 month CR2016/2025 battery target —
