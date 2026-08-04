@@ -19,8 +19,13 @@ assembles, and tests; rev2 fixes happen in a follow-up pass.
 
 ## Working agreement
 
-- Phased build order: **app → firmware → PCB**, since PCB layout depends on final
-  component choices made in the other two phases.
+- Phased build order: **app → hardware feasibility/component selection →
+  firmware → PCB layout/routing**. Originally planned as app → firmware → PCB;
+  revised because MCU/component package selection is gated by physical cavity
+  space, and discovering a fit problem after firmware is written around a
+  specific chip's peripherals is a more expensive redo than checking fit
+  first. Full board layout/routing still comes last, once firmware locks in
+  exact pin/peripheral requirements.
 - Post a brief status/plan at the *start* of each phase, not just a report at the end.
 - Ask before silently deciding anything that changes the spec (MCU tradeoffs,
   connection-interval-vs-battery-life targets, what to cut if space runs out).
@@ -72,11 +77,33 @@ assembles, and tests; rev2 fixes happen in a follow-up pass.
 **Still open before/during this phase** (source or ask as needed):
 - Weather API provider (needs an API key/account).
 
+## Phase 1.5 — Hardware feasibility & component selection
+
+Pulled forward from Phase 3 (see working agreement above). Findings in
+[`hardware/FEASIBILITY.md`](hardware/FEASIBILITY.md). Summary:
+
+- **Coin cell: CR2016**, not CR2025 — resolved. It's the stock cell for this
+  case family's module (593) and the one both Sensor Watch and Sensor Watch
+  Pro use as drop-in boards for this exact case, so it's proven to fit twice
+  over.
+- **Battery contacts**: reuse Casio's own spring-contact mechanism (case
+  back + O-ring) via gold-plated PCB pads, rather than adding a discrete SMD
+  coin cell holder — a holder alone is ~3.1mm tall, too much of an 8.2mm
+  case budget.
+- **MCU: open decision** between nRF52820 (proven to fit this case via
+  Sensor Watch Pro, but no PDM/I2S mic peripheral) and nRF52832 (better
+  audio path via PDM+EasyDMA, but a larger, unproven-in-this-case package) —
+  see punch list below, asked separately since it changes firmware's audio
+  architecture.
+- Mic, vibration motor, and NFC IC candidates sourced with real
+  datasheet-level specs — see FEASIBILITY.md for parts and the tightest
+  clearance risk (vibration motor thickness).
+- No published source gives the module's cavity **depth** — flagged as the
+  top-priority calipers measurement before any board layout starts.
+
 ## Phase 2 — Watch firmware (BLE peripheral)
 
-- MCU: research nRF52-series (or similar BLE SoC) candidates against power
-  budget and package size; present options with tradeoffs rather than picking
-  silently.
+- MCU: locked in from the Phase 1.5 decision above.
 - BLE peripheral role, aggressive duty-cycling: loose connection interval when
   idle, tightened only during active use (voice capture, incoming call, active
   music control). Primary lever for the 3–6 month CR2016/2025 battery target —
@@ -89,20 +116,15 @@ assembles, and tests; rev2 fixes happen in a follow-up pass.
 
 ## Phase 3 — Rev1 PCB
 
-- Source A158W module cavity dimensions from teardown docs / modder guides;
-  cross-check against Ollee Watch and Sensor Watch Pro form factors (same case
-  family) as a sanity check on achievable size/depth.
-- Source real datasheets for every component (MCU, mic, vibration motor, NFC
-  IC, coin cell holder, buzzer if not reusing stock part) — build footprints
-  from actual specs, not estimates.
+- Component selection done in Phase 1.5 (`hardware/FEASIBILITY.md`); this
+  phase is layout/routing against firmware's finalized pin requirements.
 - KiCad: schematic → footprint placement → routing → board outline matching
   cavity constraints.
-- Coin cell: CR2016 or CR2025, decided by depth budget once stack height is known.
 - Passive NFC tag placement — flagged explicitly as an unvalidated risk (steel
   case attenuation), not treated as solved by placement alone.
 - Output: Gerbers + BOM + a written list of physical assumptions to verify with
   calipers before ordering (e.g., "cavity depth assumed at X mm from source Y,
-  please verify").
+  please verify") — builds on the punch list started in Phase 1.5.
 
 ## Explicit non-goals (rev1)
 
