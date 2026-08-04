@@ -102,6 +102,14 @@ Pulled forward from Phase 3 (see working agreement above). Findings in
 
 ## Phase 2 — Watch firmware (BLE peripheral)
 
+Source-complete in [`firmware/`](firmware/) — nRF Connect SDK / Zephyr,
+implementing the full WatchProtocol contract. Unbuilt/unverified against a
+real compiler; see `firmware/README.md`'s risk-ranked list before trusting
+any one file. Notable addition beyond the original spec: the stock A158W's
+four physical buttons needed a rev1 UX mapping (talk/capture/music/call-answer
+weren't assigned to specific buttons anywhere) — see
+`firmware/PINMAP.md#button-remapping`.
+
 - MCU: **nRF52832**, locked in from the Phase 1.5 decision above.
 - BLE peripheral role, aggressive duty-cycling: loose connection interval when
   idle, tightened only during active use (voice capture, incoming call, active

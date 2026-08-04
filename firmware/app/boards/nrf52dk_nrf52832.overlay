@@ -1,0 +1,152 @@
+/*
+ * Bring-up overlay for the nRF52-DK, standing in for the custom rev1 PCB
+ * (which doesn't exist yet — this is Phase 3). Pin assignments here are
+ * provisional and picked for DK convenience, not from any real board; once
+ * the PCB exists, replace this whole file with a proper custom board
+ * definition (a real `boards/<vendor>/casioai_watch/` directory) that
+ * matches actual routing, and update PINMAP.md alongside it.
+ *
+ * Devicetree/pinctrl syntax is the least-verified part of this firmware —
+ * no compiler was available to check it. Cross-check the `NRF_PSEL(...)`
+ * macros and node names against an actual NCS checkout's samples
+ * (`samples/bluetooth/peripheral_hids` and `samples/drivers/spi_flash` are
+ * both good pinctrl references) before trusting this file as-is.
+ *
+ * Pin map (see ../PINMAP.md for the authoritative, human-readable table):
+ *   P0.02  PDM CLK    -> MEMS mic
+ *   P0.03  PDM DIN    -> MEMS mic
+ *   P0.04  SPI SCK    -> LCD driver IC (PCF8551)
+ *   P0.05  SPI MOSI   -> LCD driver IC
+ *   P0.06  SPI CS     -> LCD driver IC
+ *   P0.07  Button in  -> top-right button (Talk), active low, pull-up
+ *   P0.08  PWM0       -> stock piezo buzzer
+ *   P0.09  PWM1       -> vibration motor (driven through a transistor, not directly)
+ *   P0.10  Button in  -> top-left button (Light), active low, pull-up
+ *   P0.11  Button in  -> bottom-left button (Music), active low, pull-up
+ *   P0.12  Button in  -> bottom-right button (Capture), active low, pull-up
+ */
+
+&pinctrl {
+	spi1_default: spi1_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 4)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 5)>;
+		};
+	};
+
+	spi1_sleep: spi1_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 4)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 5)>;
+			low-power-enable;
+		};
+	};
+
+	pwm0_default: pwm0_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 8)>;
+		};
+	};
+
+	pwm0_sleep: pwm0_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 8)>;
+			low-power-enable;
+		};
+	};
+
+	pwm1_default: pwm1_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 9)>;
+		};
+	};
+
+	pwm1_sleep: pwm1_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 9)>;
+			low-power-enable;
+		};
+	};
+
+	pdm0_default: pdm0_default {
+		group1 {
+			psels = <NRF_PSEL(PDM_CLK, 0, 2)>,
+				<NRF_PSEL(PDM_DIN, 0, 3)>;
+		};
+	};
+
+	pdm0_sleep: pdm0_sleep {
+		group1 {
+			psels = <NRF_PSEL(PDM_CLK, 0, 2)>,
+				<NRF_PSEL(PDM_DIN, 0, 3)>;
+			low-power-enable;
+		};
+	};
+};
+
+&spi1 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+	cs-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+
+	lcd_driver: pcf8551@0 {
+		compatible = "nxp,pcf8551";
+		reg = <0>;
+		spi-max-frequency = <2000000>;
+		label = "LCD_DRIVER";
+	};
+};
+
+&pwm0 {
+	status = "okay";
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-1 = <&pwm0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&pwm1 {
+	status = "okay";
+	pinctrl-0 = <&pwm1_default>;
+	pinctrl-1 = <&pwm1_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&pdm0 {
+	status = "okay";
+	pinctrl-0 = <&pdm0_default>;
+	pinctrl-1 = <&pdm0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+/ {
+	buttons {
+		compatible = "gpio-keys";
+		talk_button: button_0 {
+			gpios = <&gpio0 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Top-right (Talk)";
+		};
+		light_button: button_1 {
+			gpios = <&gpio0 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Top-left (Light)";
+		};
+		music_button: button_2 {
+			gpios = <&gpio0 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Bottom-left (Music)";
+		};
+		capture_button: button_3 {
+			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Bottom-right (Capture)";
+		};
+	};
+
+	aliases {
+		talk-button = &talk_button;
+		light-button = &light_button;
+		music-button = &music_button;
+		capture-button = &capture_button;
+		lcd-driver = &lcd_driver;
+	};
+};

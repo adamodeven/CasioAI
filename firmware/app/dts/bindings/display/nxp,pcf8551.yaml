@@ -1,0 +1,10 @@
+description: |
+  NXP PCF8551 4-backplane x 36-segment LCD driver, SPI-connected. No
+  upstream Zephyr driver exists for this part; lcd_driver.c talks to it
+  directly via spi_transceive_dt rather than going through a registered
+  Zephyr display device, so this binding only exists to give the devicetree
+  node a valid compatible for the SPI bus to reference.
+
+compatible: "nxp,pcf8551"
+
+include: spi-device.yaml
